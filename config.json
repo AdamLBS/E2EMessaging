@@ -1,0 +1,29 @@
+{
+  "address": "0.0.0.0",
+  "port": 8080,
+  "use_ssl": false,
+  "threads_num": 0,
+  "log": {
+    "log_path": "./",
+    "logfile_base_name": "server",
+    "timezone": "local",
+    "level": "INFO"
+  },
+  "db_clients": [
+    {
+      "rdbms": "postgresql",
+      "host": "127.0.0.1",
+      "port": 5432,
+      "dbname": "e2ee",
+      "user": "e2ee",
+      "password": "e2ee",
+      "is_fast": false,
+      "name": "default"
+    }
+  ],
+  "redis": {
+    "host": "127.0.0.1",
+    "port": 6379,
+    "timeout": 1.0
+  }
+}

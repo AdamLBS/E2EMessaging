@@ -1,0 +1,15 @@
+{
+  "name": "e2ee-backend",
+  "version": "0.1.0",
+  "dependencies": [
+    "drogon",
+    "openssl",
+    "libsodium",
+    "libpq",
+    "libpqxx",
+    "jwt-cpp",
+    "redis-plus-plus",
+    "hiredis",
+    "spdlog"
+  ]
+}

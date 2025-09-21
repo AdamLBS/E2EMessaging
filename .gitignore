@@ -1,0 +1,9 @@
+build/
+.vscode/
+.idea/
+*.swp
+*.swo
+*.cache
+.DS_Store
+.env
+vcpkg_installed/
