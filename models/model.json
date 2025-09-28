@@ -1,0 +1,10 @@
+{
+    "rdbms": "postgresql",
+    "host": "127.0.0.1",
+    "port": 5432,
+    "dbname": "e2ee",
+    "user": "postgres",
+    "password": "dev",
+    "is_fast": false,
+    "name": "default"
+}
