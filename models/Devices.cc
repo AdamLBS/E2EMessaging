@@ -16,8 +16,10 @@ using namespace drogon_model::e2ee;
 const std::string Devices::Cols::_id = "\"id\"";
 const std::string Devices::Cols::_user_id = "\"user_id\"";
 const std::string Devices::Cols::_identity_pubkey = "\"identity_pubkey\"";
+const std::string Devices::Cols::_device_label = "\"device_label\"";
 const std::string Devices::Cols::_push_token = "\"push_token\"";
 const std::string Devices::Cols::_last_seen = "\"last_seen\"";
+const std::string Devices::Cols::_created_at = "\"created_at\"";
 const std::string Devices::primaryKeyName = "id";
 const bool Devices::hasPrimaryKey = true;
 const std::string Devices::tableName = "\"devices\"";
@@ -26,8 +28,10 @@ const std::vector<typename Devices::MetaData> Devices::metaData_={
 {"id","std::string","uuid",0,0,1,1},
 {"user_id","std::string","uuid",0,0,0,0},
 {"identity_pubkey","std::string","text",0,0,0,1},
+{"device_label","std::string","text",0,0,0,0},
 {"push_token","std::string","text",0,0,0,0},
-{"last_seen","::trantor::Date","timestamp without time zone",0,0,0,0}
+{"last_seen","::trantor::Date","timestamp without time zone",0,0,0,0},
+{"created_at","::trantor::Date","timestamp without time zone",0,0,0,0}
 };
 const std::string &Devices::getColumnName(size_t index) noexcept(false)
 {
@@ -49,6 +53,10 @@ Devices::Devices(const Row &r, const ssize_t indexOffset) noexcept
         if(!r["identity_pubkey"].isNull())
         {
             identityPubkey_=std::make_shared<std::string>(r["identity_pubkey"].as<std::string>());
+        }
+        if(!r["device_label"].isNull())
+        {
+            deviceLabel_=std::make_shared<std::string>(r["device_label"].as<std::string>());
         }
         if(!r["push_token"].isNull())
         {
@@ -76,11 +84,33 @@ Devices::Devices(const Row &r, const ssize_t indexOffset) noexcept
                 lastSeen_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
+        if(!r["created_at"].isNull())
+        {
+            auto timeStr = r["created_at"].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
     }
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 5 > r.size())
+        if(offset + 7 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -104,9 +134,14 @@ Devices::Devices(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 3;
         if(!r[index].isNull())
         {
-            pushToken_=std::make_shared<std::string>(r[index].as<std::string>());
+            deviceLabel_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 4;
+        if(!r[index].isNull())
+        {
+            pushToken_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 5;
         if(!r[index].isNull())
         {
             auto timeStr = r[index].as<std::string>();
@@ -129,13 +164,36 @@ Devices::Devices(const Row &r, const ssize_t indexOffset) noexcept
                 lastSeen_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
+        index = offset + 6;
+        if(!r[index].isNull())
+        {
+            auto timeStr = r[index].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
     }
 
 }
 
 Devices::Devices(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -169,7 +227,7 @@ Devices::Devices(const Json::Value &pJson, const std::vector<std::string> &pMasq
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            pushToken_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+            deviceLabel_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
     if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
@@ -177,7 +235,15 @@ Devices::Devices(const Json::Value &pJson, const std::vector<std::string> &pMasq
         dirtyFlag_[4] = true;
         if(!pJson[pMasqueradingVector[4]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[4]].asString();
+            pushToken_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
+    if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson[pMasqueradingVector[5]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[5]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -195,6 +261,32 @@ Devices::Devices(const Json::Value &pJson, const std::vector<std::string> &pMasq
                     decimalNum = (size_t)atol(decimals.c_str());
                 }
                 lastSeen_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[6]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
     }
@@ -226,9 +318,17 @@ Devices::Devices(const Json::Value &pJson) noexcept(false)
             identityPubkey_=std::make_shared<std::string>(pJson["identity_pubkey"].asString());
         }
     }
-    if(pJson.isMember("push_token"))
+    if(pJson.isMember("device_label"))
     {
         dirtyFlag_[3]=true;
+        if(!pJson["device_label"].isNull())
+        {
+            deviceLabel_=std::make_shared<std::string>(pJson["device_label"].asString());
+        }
+    }
+    if(pJson.isMember("push_token"))
+    {
+        dirtyFlag_[4]=true;
         if(!pJson["push_token"].isNull())
         {
             pushToken_=std::make_shared<std::string>(pJson["push_token"].asString());
@@ -236,7 +336,7 @@ Devices::Devices(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("last_seen"))
     {
-        dirtyFlag_[4]=true;
+        dirtyFlag_[5]=true;
         if(!pJson["last_seen"].isNull())
         {
             auto timeStr = pJson["last_seen"].asString();
@@ -260,12 +360,38 @@ Devices::Devices(const Json::Value &pJson) noexcept(false)
             }
         }
     }
+    if(pJson.isMember("created_at"))
+    {
+        dirtyFlag_[6]=true;
+        if(!pJson["created_at"].isNull())
+        {
+            auto timeStr = pJson["created_at"].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
 }
 
 void Devices::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -298,7 +424,7 @@ void Devices::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            pushToken_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+            deviceLabel_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
     if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
@@ -306,7 +432,15 @@ void Devices::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[4] = true;
         if(!pJson[pMasqueradingVector[4]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[4]].asString();
+            pushToken_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
+    if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson[pMasqueradingVector[5]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[5]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -324,6 +458,32 @@ void Devices::updateByMasqueradedJson(const Json::Value &pJson,
                     decimalNum = (size_t)atol(decimals.c_str());
                 }
                 lastSeen_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[6]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
     }
@@ -354,9 +514,17 @@ void Devices::updateByJson(const Json::Value &pJson) noexcept(false)
             identityPubkey_=std::make_shared<std::string>(pJson["identity_pubkey"].asString());
         }
     }
-    if(pJson.isMember("push_token"))
+    if(pJson.isMember("device_label"))
     {
         dirtyFlag_[3] = true;
+        if(!pJson["device_label"].isNull())
+        {
+            deviceLabel_=std::make_shared<std::string>(pJson["device_label"].asString());
+        }
+    }
+    if(pJson.isMember("push_token"))
+    {
+        dirtyFlag_[4] = true;
         if(!pJson["push_token"].isNull())
         {
             pushToken_=std::make_shared<std::string>(pJson["push_token"].asString());
@@ -364,7 +532,7 @@ void Devices::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("last_seen"))
     {
-        dirtyFlag_[4] = true;
+        dirtyFlag_[5] = true;
         if(!pJson["last_seen"].isNull())
         {
             auto timeStr = pJson["last_seen"].asString();
@@ -385,6 +553,32 @@ void Devices::updateByJson(const Json::Value &pJson) noexcept(false)
                     decimalNum = (size_t)atol(decimals.c_str());
                 }
                 lastSeen_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(pJson.isMember("created_at"))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson["created_at"].isNull())
+        {
+            auto timeStr = pJson["created_at"].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
     }
@@ -466,6 +660,33 @@ void Devices::setIdentityPubkey(std::string &&pIdentityPubkey) noexcept
     dirtyFlag_[2] = true;
 }
 
+const std::string &Devices::getValueOfDeviceLabel() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(deviceLabel_)
+        return *deviceLabel_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Devices::getDeviceLabel() const noexcept
+{
+    return deviceLabel_;
+}
+void Devices::setDeviceLabel(const std::string &pDeviceLabel) noexcept
+{
+    deviceLabel_ = std::make_shared<std::string>(pDeviceLabel);
+    dirtyFlag_[3] = true;
+}
+void Devices::setDeviceLabel(std::string &&pDeviceLabel) noexcept
+{
+    deviceLabel_ = std::make_shared<std::string>(std::move(pDeviceLabel));
+    dirtyFlag_[3] = true;
+}
+void Devices::setDeviceLabelToNull() noexcept
+{
+    deviceLabel_.reset();
+    dirtyFlag_[3] = true;
+}
+
 const std::string &Devices::getValueOfPushToken() const noexcept
 {
     static const std::string defaultValue = std::string();
@@ -480,17 +701,17 @@ const std::shared_ptr<std::string> &Devices::getPushToken() const noexcept
 void Devices::setPushToken(const std::string &pPushToken) noexcept
 {
     pushToken_ = std::make_shared<std::string>(pPushToken);
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 void Devices::setPushToken(std::string &&pPushToken) noexcept
 {
     pushToken_ = std::make_shared<std::string>(std::move(pPushToken));
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 void Devices::setPushTokenToNull() noexcept
 {
     pushToken_.reset();
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 
 const ::trantor::Date &Devices::getValueOfLastSeen() const noexcept
@@ -507,12 +728,34 @@ const std::shared_ptr<::trantor::Date> &Devices::getLastSeen() const noexcept
 void Devices::setLastSeen(const ::trantor::Date &pLastSeen) noexcept
 {
     lastSeen_ = std::make_shared<::trantor::Date>(pLastSeen);
-    dirtyFlag_[4] = true;
+    dirtyFlag_[5] = true;
 }
 void Devices::setLastSeenToNull() noexcept
 {
     lastSeen_.reset();
-    dirtyFlag_[4] = true;
+    dirtyFlag_[5] = true;
+}
+
+const ::trantor::Date &Devices::getValueOfCreatedAt() const noexcept
+{
+    static const ::trantor::Date defaultValue = ::trantor::Date();
+    if(createdAt_)
+        return *createdAt_;
+    return defaultValue;
+}
+const std::shared_ptr<::trantor::Date> &Devices::getCreatedAt() const noexcept
+{
+    return createdAt_;
+}
+void Devices::setCreatedAt(const ::trantor::Date &pCreatedAt) noexcept
+{
+    createdAt_ = std::make_shared<::trantor::Date>(pCreatedAt);
+    dirtyFlag_[6] = true;
+}
+void Devices::setCreatedAtToNull() noexcept
+{
+    createdAt_.reset();
+    dirtyFlag_[6] = true;
 }
 
 void Devices::updateId(const uint64_t id)
@@ -525,8 +768,10 @@ const std::vector<std::string> &Devices::insertColumns() noexcept
         "id",
         "user_id",
         "identity_pubkey",
+        "device_label",
         "push_token",
-        "last_seen"
+        "last_seen",
+        "created_at"
     };
     return inCols;
 }
@@ -568,6 +813,17 @@ void Devices::outputArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[3])
     {
+        if(getDeviceLabel())
+        {
+            binder << getValueOfDeviceLabel();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
+    {
         if(getPushToken())
         {
             binder << getValueOfPushToken();
@@ -577,11 +833,22 @@ void Devices::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[4])
+    if(dirtyFlag_[5])
     {
         if(getLastSeen())
         {
             binder << getValueOfLastSeen();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[6])
+    {
+        if(getCreatedAt())
+        {
+            binder << getValueOfCreatedAt();
         }
         else
         {
@@ -612,6 +879,14 @@ const std::vector<std::string> Devices::updateColumns() const
     if(dirtyFlag_[4])
     {
         ret.push_back(getColumnName(4));
+    }
+    if(dirtyFlag_[5])
+    {
+        ret.push_back(getColumnName(5));
+    }
+    if(dirtyFlag_[6])
+    {
+        ret.push_back(getColumnName(6));
     }
     return ret;
 }
@@ -653,6 +928,17 @@ void Devices::updateArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[3])
     {
+        if(getDeviceLabel())
+        {
+            binder << getValueOfDeviceLabel();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
+    {
         if(getPushToken())
         {
             binder << getValueOfPushToken();
@@ -662,11 +948,22 @@ void Devices::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[4])
+    if(dirtyFlag_[5])
     {
         if(getLastSeen())
         {
             binder << getValueOfLastSeen();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[6])
+    {
+        if(getCreatedAt())
+        {
+            binder << getValueOfCreatedAt();
         }
         else
         {
@@ -701,6 +998,14 @@ Json::Value Devices::toJson() const
     {
         ret["identity_pubkey"]=Json::Value();
     }
+    if(getDeviceLabel())
+    {
+        ret["device_label"]=getValueOfDeviceLabel();
+    }
+    else
+    {
+        ret["device_label"]=Json::Value();
+    }
     if(getPushToken())
     {
         ret["push_token"]=getValueOfPushToken();
@@ -717,6 +1022,14 @@ Json::Value Devices::toJson() const
     {
         ret["last_seen"]=Json::Value();
     }
+    if(getCreatedAt())
+    {
+        ret["created_at"]=getCreatedAt()->toDbStringLocal();
+    }
+    else
+    {
+        ret["created_at"]=Json::Value();
+    }
     return ret;
 }
 
@@ -724,7 +1037,7 @@ Json::Value Devices::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 5)
+    if(pMasqueradingVector.size() == 7)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -761,9 +1074,9 @@ Json::Value Devices::toMasqueradedJson(
         }
         if(!pMasqueradingVector[3].empty())
         {
-            if(getPushToken())
+            if(getDeviceLabel())
             {
-                ret[pMasqueradingVector[3]]=getValueOfPushToken();
+                ret[pMasqueradingVector[3]]=getValueOfDeviceLabel();
             }
             else
             {
@@ -772,13 +1085,35 @@ Json::Value Devices::toMasqueradedJson(
         }
         if(!pMasqueradingVector[4].empty())
         {
-            if(getLastSeen())
+            if(getPushToken())
             {
-                ret[pMasqueradingVector[4]]=getLastSeen()->toDbStringLocal();
+                ret[pMasqueradingVector[4]]=getValueOfPushToken();
             }
             else
             {
                 ret[pMasqueradingVector[4]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[5].empty())
+        {
+            if(getLastSeen())
+            {
+                ret[pMasqueradingVector[5]]=getLastSeen()->toDbStringLocal();
+            }
+            else
+            {
+                ret[pMasqueradingVector[5]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[6].empty())
+        {
+            if(getCreatedAt())
+            {
+                ret[pMasqueradingVector[6]]=getCreatedAt()->toDbStringLocal();
+            }
+            else
+            {
+                ret[pMasqueradingVector[6]]=Json::Value();
             }
         }
         return ret;
@@ -808,6 +1143,14 @@ Json::Value Devices::toMasqueradedJson(
     {
         ret["identity_pubkey"]=Json::Value();
     }
+    if(getDeviceLabel())
+    {
+        ret["device_label"]=getValueOfDeviceLabel();
+    }
+    else
+    {
+        ret["device_label"]=Json::Value();
+    }
     if(getPushToken())
     {
         ret["push_token"]=getValueOfPushToken();
@@ -823,6 +1166,14 @@ Json::Value Devices::toMasqueradedJson(
     else
     {
         ret["last_seen"]=Json::Value();
+    }
+    if(getCreatedAt())
+    {
+        ret["created_at"]=getCreatedAt()->toDbStringLocal();
+    }
+    else
+    {
+        ret["created_at"]=Json::Value();
     }
     return ret;
 }
@@ -849,14 +1200,24 @@ bool Devices::validateJsonForCreation(const Json::Value &pJson, std::string &err
         err="The identity_pubkey column cannot be null";
         return false;
     }
+    if(pJson.isMember("device_label"))
+    {
+        if(!validJsonOfField(3, "device_label", pJson["device_label"], err, true))
+            return false;
+    }
     if(pJson.isMember("push_token"))
     {
-        if(!validJsonOfField(3, "push_token", pJson["push_token"], err, true))
+        if(!validJsonOfField(4, "push_token", pJson["push_token"], err, true))
             return false;
     }
     if(pJson.isMember("last_seen"))
     {
-        if(!validJsonOfField(4, "last_seen", pJson["last_seen"], err, true))
+        if(!validJsonOfField(5, "last_seen", pJson["last_seen"], err, true))
+            return false;
+    }
+    if(pJson.isMember("created_at"))
+    {
+        if(!validJsonOfField(6, "created_at", pJson["created_at"], err, true))
             return false;
     }
     return true;
@@ -865,7 +1226,7 @@ bool Devices::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                  const std::vector<std::string> &pMasqueradingVector,
                                                  std::string &err)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         err = "Bad masquerading vector";
         return false;
@@ -916,6 +1277,22 @@ bool Devices::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                   return false;
           }
       }
+      if(!pMasqueradingVector[5].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[5]))
+          {
+              if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[6].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[6]))
+          {
+              if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, true))
+                  return false;
+          }
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -946,14 +1323,24 @@ bool Devices::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(2, "identity_pubkey", pJson["identity_pubkey"], err, false))
             return false;
     }
+    if(pJson.isMember("device_label"))
+    {
+        if(!validJsonOfField(3, "device_label", pJson["device_label"], err, false))
+            return false;
+    }
     if(pJson.isMember("push_token"))
     {
-        if(!validJsonOfField(3, "push_token", pJson["push_token"], err, false))
+        if(!validJsonOfField(4, "push_token", pJson["push_token"], err, false))
             return false;
     }
     if(pJson.isMember("last_seen"))
     {
-        if(!validJsonOfField(4, "last_seen", pJson["last_seen"], err, false))
+        if(!validJsonOfField(5, "last_seen", pJson["last_seen"], err, false))
+            return false;
+    }
+    if(pJson.isMember("created_at"))
+    {
+        if(!validJsonOfField(6, "created_at", pJson["created_at"], err, false))
             return false;
     }
     return true;
@@ -962,7 +1349,7 @@ bool Devices::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                                const std::vector<std::string> &pMasqueradingVector,
                                                std::string &err)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         err = "Bad masquerading vector";
         return false;
@@ -996,6 +1383,16 @@ bool Devices::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
       {
           if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+      {
+          if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+      {
+          if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, false))
               return false;
       }
     }
@@ -1061,6 +1458,28 @@ bool Devices::validJsonOfField(size_t index,
             }
             break;
         case 4:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 5:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 6:
             if(pJson.isNull())
             {
                 return true;
