@@ -2,8 +2,7 @@
 This is the backend for an end-to-end encrypted messaging application. It is built using the Drogon C++ framework and PostgreSQL for data storage.
 
 ## Authentication Flow
-```
-mermaid
+```mermaid
 sequenceDiagram
     participant Client as Client (App)
     participant Server as Server (Drogon + PostgreSQL)
