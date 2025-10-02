@@ -24,9 +24,9 @@ const bool Messages::hasPrimaryKey = true;
 const std::string Messages::tableName = "\"messages\"";
 
 const std::vector<typename Messages::MetaData> Messages::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"from_user","int32_t","integer",4,0,0,0},
-{"to_user","int32_t","integer",4,0,0,0},
+{"id","std::string","uuid",0,0,1,1},
+{"from_user","std::string","uuid",0,0,0,0},
+{"to_user","std::string","uuid",0,0,0,0},
 {"ciphertext","std::string","text",0,0,0,1},
 {"created_at","::trantor::Date","timestamp without time zone",0,0,0,0},
 {"delivered","bool","boolean",1,0,0,0}
@@ -42,15 +42,15 @@ Messages::Messages(const Row &r, const ssize_t indexOffset) noexcept
     {
         if(!r["id"].isNull())
         {
-            id_=std::make_shared<int32_t>(r["id"].as<int32_t>());
+            id_=std::make_shared<std::string>(r["id"].as<std::string>());
         }
         if(!r["from_user"].isNull())
         {
-            fromUser_=std::make_shared<int32_t>(r["from_user"].as<int32_t>());
+            fromUser_=std::make_shared<std::string>(r["from_user"].as<std::string>());
         }
         if(!r["to_user"].isNull())
         {
-            toUser_=std::make_shared<int32_t>(r["to_user"].as<int32_t>());
+            toUser_=std::make_shared<std::string>(r["to_user"].as<std::string>());
         }
         if(!r["ciphertext"].isNull())
         {
@@ -95,17 +95,17 @@ Messages::Messages(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 0;
         if(!r[index].isNull())
         {
-            id_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            id_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 1;
         if(!r[index].isNull())
         {
-            fromUser_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            fromUser_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 2;
         if(!r[index].isNull())
         {
-            toUser_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            toUser_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 3;
         if(!r[index].isNull())
@@ -156,7 +156,7 @@ Messages::Messages(const Json::Value &pJson, const std::vector<std::string> &pMa
         dirtyFlag_[0] = true;
         if(!pJson[pMasqueradingVector[0]].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
+            id_=std::make_shared<std::string>(pJson[pMasqueradingVector[0]].asString());
         }
     }
     if(!pMasqueradingVector[1].empty() && pJson.isMember(pMasqueradingVector[1]))
@@ -164,7 +164,7 @@ Messages::Messages(const Json::Value &pJson, const std::vector<std::string> &pMa
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            fromUser_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
+            fromUser_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
         }
     }
     if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
@@ -172,7 +172,7 @@ Messages::Messages(const Json::Value &pJson, const std::vector<std::string> &pMa
         dirtyFlag_[2] = true;
         if(!pJson[pMasqueradingVector[2]].isNull())
         {
-            toUser_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[2]].asInt64());
+            toUser_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
         }
     }
     if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
@@ -226,7 +226,7 @@ Messages::Messages(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[0]=true;
         if(!pJson["id"].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
+            id_=std::make_shared<std::string>(pJson["id"].asString());
         }
     }
     if(pJson.isMember("from_user"))
@@ -234,7 +234,7 @@ Messages::Messages(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[1]=true;
         if(!pJson["from_user"].isNull())
         {
-            fromUser_=std::make_shared<int32_t>((int32_t)pJson["from_user"].asInt64());
+            fromUser_=std::make_shared<std::string>(pJson["from_user"].asString());
         }
     }
     if(pJson.isMember("to_user"))
@@ -242,7 +242,7 @@ Messages::Messages(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[2]=true;
         if(!pJson["to_user"].isNull())
         {
-            toUser_=std::make_shared<int32_t>((int32_t)pJson["to_user"].asInt64());
+            toUser_=std::make_shared<std::string>(pJson["to_user"].asString());
         }
     }
     if(pJson.isMember("ciphertext"))
@@ -301,7 +301,7 @@ void Messages::updateByMasqueradedJson(const Json::Value &pJson,
     {
         if(!pJson[pMasqueradingVector[0]].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
+            id_=std::make_shared<std::string>(pJson[pMasqueradingVector[0]].asString());
         }
     }
     if(!pMasqueradingVector[1].empty() && pJson.isMember(pMasqueradingVector[1]))
@@ -309,7 +309,7 @@ void Messages::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            fromUser_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
+            fromUser_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
         }
     }
     if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
@@ -317,7 +317,7 @@ void Messages::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[2] = true;
         if(!pJson[pMasqueradingVector[2]].isNull())
         {
-            toUser_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[2]].asInt64());
+            toUser_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
         }
     }
     if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
@@ -370,7 +370,7 @@ void Messages::updateByJson(const Json::Value &pJson) noexcept(false)
     {
         if(!pJson["id"].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
+            id_=std::make_shared<std::string>(pJson["id"].asString());
         }
     }
     if(pJson.isMember("from_user"))
@@ -378,7 +378,7 @@ void Messages::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[1] = true;
         if(!pJson["from_user"].isNull())
         {
-            fromUser_=std::make_shared<int32_t>((int32_t)pJson["from_user"].asInt64());
+            fromUser_=std::make_shared<std::string>(pJson["from_user"].asString());
         }
     }
     if(pJson.isMember("to_user"))
@@ -386,7 +386,7 @@ void Messages::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[2] = true;
         if(!pJson["to_user"].isNull())
         {
-            toUser_=std::make_shared<int32_t>((int32_t)pJson["to_user"].asInt64());
+            toUser_=std::make_shared<std::string>(pJson["to_user"].asString());
         }
     }
     if(pJson.isMember("ciphertext"))
@@ -433,20 +433,25 @@ void Messages::updateByJson(const Json::Value &pJson) noexcept(false)
     }
 }
 
-const int32_t &Messages::getValueOfId() const noexcept
+const std::string &Messages::getValueOfId() const noexcept
 {
-    static const int32_t defaultValue = int32_t();
+    static const std::string defaultValue = std::string();
     if(id_)
         return *id_;
     return defaultValue;
 }
-const std::shared_ptr<int32_t> &Messages::getId() const noexcept
+const std::shared_ptr<std::string> &Messages::getId() const noexcept
 {
     return id_;
 }
-void Messages::setId(const int32_t &pId) noexcept
+void Messages::setId(const std::string &pId) noexcept
 {
-    id_ = std::make_shared<int32_t>(pId);
+    id_ = std::make_shared<std::string>(pId);
+    dirtyFlag_[0] = true;
+}
+void Messages::setId(std::string &&pId) noexcept
+{
+    id_ = std::make_shared<std::string>(std::move(pId));
     dirtyFlag_[0] = true;
 }
 const typename Messages::PrimaryKeyType & Messages::getPrimaryKey() const
@@ -455,20 +460,25 @@ const typename Messages::PrimaryKeyType & Messages::getPrimaryKey() const
     return *id_;
 }
 
-const int32_t &Messages::getValueOfFromUser() const noexcept
+const std::string &Messages::getValueOfFromUser() const noexcept
 {
-    static const int32_t defaultValue = int32_t();
+    static const std::string defaultValue = std::string();
     if(fromUser_)
         return *fromUser_;
     return defaultValue;
 }
-const std::shared_ptr<int32_t> &Messages::getFromUser() const noexcept
+const std::shared_ptr<std::string> &Messages::getFromUser() const noexcept
 {
     return fromUser_;
 }
-void Messages::setFromUser(const int32_t &pFromUser) noexcept
+void Messages::setFromUser(const std::string &pFromUser) noexcept
 {
-    fromUser_ = std::make_shared<int32_t>(pFromUser);
+    fromUser_ = std::make_shared<std::string>(pFromUser);
+    dirtyFlag_[1] = true;
+}
+void Messages::setFromUser(std::string &&pFromUser) noexcept
+{
+    fromUser_ = std::make_shared<std::string>(std::move(pFromUser));
     dirtyFlag_[1] = true;
 }
 void Messages::setFromUserToNull() noexcept
@@ -477,20 +487,25 @@ void Messages::setFromUserToNull() noexcept
     dirtyFlag_[1] = true;
 }
 
-const int32_t &Messages::getValueOfToUser() const noexcept
+const std::string &Messages::getValueOfToUser() const noexcept
 {
-    static const int32_t defaultValue = int32_t();
+    static const std::string defaultValue = std::string();
     if(toUser_)
         return *toUser_;
     return defaultValue;
 }
-const std::shared_ptr<int32_t> &Messages::getToUser() const noexcept
+const std::shared_ptr<std::string> &Messages::getToUser() const noexcept
 {
     return toUser_;
 }
-void Messages::setToUser(const int32_t &pToUser) noexcept
+void Messages::setToUser(const std::string &pToUser) noexcept
 {
-    toUser_ = std::make_shared<int32_t>(pToUser);
+    toUser_ = std::make_shared<std::string>(pToUser);
+    dirtyFlag_[2] = true;
+}
+void Messages::setToUser(std::string &&pToUser) noexcept
+{
+    toUser_ = std::make_shared<std::string>(std::move(pToUser));
     dirtyFlag_[2] = true;
 }
 void Messages::setToUserToNull() noexcept
@@ -572,6 +587,7 @@ void Messages::updateId(const uint64_t id)
 const std::vector<std::string> &Messages::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
+        "id",
         "from_user",
         "to_user",
         "ciphertext",
@@ -583,6 +599,17 @@ const std::vector<std::string> &Messages::insertColumns() noexcept
 
 void Messages::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 {
+    if(dirtyFlag_[0])
+    {
+        if(getId())
+        {
+            binder << getValueOfId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
     if(dirtyFlag_[1])
     {
         if(getFromUser())
@@ -643,6 +670,10 @@ void Messages::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 const std::vector<std::string> Messages::updateColumns() const
 {
     std::vector<std::string> ret;
+    if(dirtyFlag_[0])
+    {
+        ret.push_back(getColumnName(0));
+    }
     if(dirtyFlag_[1])
     {
         ret.push_back(getColumnName(1));
@@ -668,6 +699,17 @@ const std::vector<std::string> Messages::updateColumns() const
 
 void Messages::updateArgs(drogon::orm::internal::SqlBinder &binder) const
 {
+    if(dirtyFlag_[0])
+    {
+        if(getId())
+        {
+            binder << getValueOfId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
     if(dirtyFlag_[1])
     {
         if(getFromUser())
@@ -1120,12 +1162,7 @@ bool Messages::validJsonOfField(size_t index,
                 err="The " + fieldName + " column cannot be null";
                 return false;
             }
-            if(isForCreation)
-            {
-                err="The automatic primary key cannot be set";
-                return false;
-            }
-            if(!pJson.isInt())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -1136,7 +1173,7 @@ bool Messages::validJsonOfField(size_t index,
             {
                 return true;
             }
-            if(!pJson.isInt())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -1147,7 +1184,7 @@ bool Messages::validJsonOfField(size_t index,
             {
                 return true;
             }
-            if(!pJson.isInt())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;

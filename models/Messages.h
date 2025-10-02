@@ -56,7 +56,7 @@ class Messages
     static const std::string tableName;
     static const bool hasPrimaryKey;
     static const std::string primaryKeyName;
-    using PrimaryKeyType = int32_t;
+    using PrimaryKeyType = std::string;
     const PrimaryKeyType &getPrimaryKey() const;
 
     /**
@@ -103,28 +103,31 @@ class Messages
 
     /**  For column id  */
     ///Get the value of the column id, returns the default value if the column is null
-    const int32_t &getValueOfId() const noexcept;
+    const std::string &getValueOfId() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getId() const noexcept;
+    const std::shared_ptr<std::string> &getId() const noexcept;
     ///Set the value of the column id
-    void setId(const int32_t &pId) noexcept;
+    void setId(const std::string &pId) noexcept;
+    void setId(std::string &&pId) noexcept;
 
     /**  For column from_user  */
     ///Get the value of the column from_user, returns the default value if the column is null
-    const int32_t &getValueOfFromUser() const noexcept;
+    const std::string &getValueOfFromUser() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getFromUser() const noexcept;
+    const std::shared_ptr<std::string> &getFromUser() const noexcept;
     ///Set the value of the column from_user
-    void setFromUser(const int32_t &pFromUser) noexcept;
+    void setFromUser(const std::string &pFromUser) noexcept;
+    void setFromUser(std::string &&pFromUser) noexcept;
     void setFromUserToNull() noexcept;
 
     /**  For column to_user  */
     ///Get the value of the column to_user, returns the default value if the column is null
-    const int32_t &getValueOfToUser() const noexcept;
+    const std::string &getValueOfToUser() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getToUser() const noexcept;
+    const std::shared_ptr<std::string> &getToUser() const noexcept;
     ///Set the value of the column to_user
-    void setToUser(const int32_t &pToUser) noexcept;
+    void setToUser(const std::string &pToUser) noexcept;
+    void setToUser(std::string &&pToUser) noexcept;
     void setToUserToNull() noexcept;
 
     /**  For column ciphertext  */
@@ -176,9 +179,9 @@ class Messages
     void updateArgs(drogon::orm::internal::SqlBinder &binder) const;
     ///For mysql or sqlite3
     void updateId(const uint64_t id);
-    std::shared_ptr<int32_t> id_;
-    std::shared_ptr<int32_t> fromUser_;
-    std::shared_ptr<int32_t> toUser_;
+    std::shared_ptr<std::string> id_;
+    std::shared_ptr<std::string> fromUser_;
+    std::shared_ptr<std::string> toUser_;
     std::shared_ptr<std::string> ciphertext_;
     std::shared_ptr<::trantor::Date> createdAt_;
     std::shared_ptr<bool> delivered_;
@@ -211,8 +214,12 @@ class Messages
         std::string sql="insert into " + tableName + " (";
         size_t parametersCount = 0;
         needSelection = false;
-            sql += "id,";
-            ++parametersCount;
+        sql += "id,";
+        ++parametersCount;
+        if(!dirtyFlag_[0])
+        {
+            needSelection=true;
+        }
         if(dirtyFlag_[1])
         {
             sql += "from_user,";
@@ -240,7 +247,6 @@ class Messages
         {
             needSelection=true;
         }
-        needSelection=true;
         if(parametersCount > 0)
         {
             sql[sql.length()-1]=')';
@@ -252,7 +258,15 @@ class Messages
         int placeholder=1;
         char placeholderStr[64];
         size_t n=0;
-        sql +="default,";
+        if(dirtyFlag_[0])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        else
+        {
+            sql +="default,";
+        }
         if(dirtyFlag_[1])
         {
             n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);

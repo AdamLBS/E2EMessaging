@@ -22,15 +22,24 @@ find_package(redis++ CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 # ---- Sources ----
+
 file(GLOB_RECURSE SOURCES
   src/*.cpp
   src/*.cc
+  models/*.cc
+  models/*.cpp
 )
 
 # ---- Exécutable ----
 add_executable(e2ee-backend ${SOURCES})
 
 # ---- Linking ----
+
+target_include_directories(e2ee-backend PRIVATE
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/src
+)
+
 target_link_libraries(e2ee-backend PRIVATE
   Drogon::Drogon
   OpenSSL::SSL OpenSSL::Crypto

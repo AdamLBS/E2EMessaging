@@ -55,7 +55,7 @@ class Devices
     static const std::string tableName;
     static const bool hasPrimaryKey;
     static const std::string primaryKeyName;
-    using PrimaryKeyType = int32_t;
+    using PrimaryKeyType = std::string;
     const PrimaryKeyType &getPrimaryKey() const;
 
     /**
@@ -102,19 +102,21 @@ class Devices
 
     /**  For column id  */
     ///Get the value of the column id, returns the default value if the column is null
-    const int32_t &getValueOfId() const noexcept;
+    const std::string &getValueOfId() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getId() const noexcept;
+    const std::shared_ptr<std::string> &getId() const noexcept;
     ///Set the value of the column id
-    void setId(const int32_t &pId) noexcept;
+    void setId(const std::string &pId) noexcept;
+    void setId(std::string &&pId) noexcept;
 
     /**  For column user_id  */
     ///Get the value of the column user_id, returns the default value if the column is null
-    const int32_t &getValueOfUserId() const noexcept;
+    const std::string &getValueOfUserId() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getUserId() const noexcept;
+    const std::shared_ptr<std::string> &getUserId() const noexcept;
     ///Set the value of the column user_id
-    void setUserId(const int32_t &pUserId) noexcept;
+    void setUserId(const std::string &pUserId) noexcept;
+    void setUserId(std::string &&pUserId) noexcept;
     void setUserIdToNull() noexcept;
 
     /**  For column identity_pubkey  */
@@ -167,8 +169,8 @@ class Devices
     void updateArgs(drogon::orm::internal::SqlBinder &binder) const;
     ///For mysql or sqlite3
     void updateId(const uint64_t id);
-    std::shared_ptr<int32_t> id_;
-    std::shared_ptr<int32_t> userId_;
+    std::shared_ptr<std::string> id_;
+    std::shared_ptr<std::string> userId_;
     std::shared_ptr<std::string> identityPubkey_;
     std::shared_ptr<std::string> pushToken_;
     std::shared_ptr<::trantor::Date> lastSeen_;
@@ -201,8 +203,12 @@ class Devices
         std::string sql="insert into " + tableName + " (";
         size_t parametersCount = 0;
         needSelection = false;
-            sql += "id,";
-            ++parametersCount;
+        sql += "id,";
+        ++parametersCount;
+        if(!dirtyFlag_[0])
+        {
+            needSelection=true;
+        }
         if(dirtyFlag_[1])
         {
             sql += "user_id,";
@@ -224,7 +230,6 @@ class Devices
         {
             needSelection=true;
         }
-        needSelection=true;
         if(parametersCount > 0)
         {
             sql[sql.length()-1]=')';
@@ -236,7 +241,15 @@ class Devices
         int placeholder=1;
         char placeholderStr[64];
         size_t n=0;
-        sql +="default,";
+        if(dirtyFlag_[0])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        else
+        {
+            sql +="default,";
+        }
         if(dirtyFlag_[1])
         {
             n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);

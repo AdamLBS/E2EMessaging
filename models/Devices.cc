@@ -23,8 +23,8 @@ const bool Devices::hasPrimaryKey = true;
 const std::string Devices::tableName = "\"devices\"";
 
 const std::vector<typename Devices::MetaData> Devices::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"user_id","int32_t","integer",4,0,0,0},
+{"id","std::string","uuid",0,0,1,1},
+{"user_id","std::string","uuid",0,0,0,0},
 {"identity_pubkey","std::string","text",0,0,0,1},
 {"push_token","std::string","text",0,0,0,0},
 {"last_seen","::trantor::Date","timestamp without time zone",0,0,0,0}
@@ -40,11 +40,11 @@ Devices::Devices(const Row &r, const ssize_t indexOffset) noexcept
     {
         if(!r["id"].isNull())
         {
-            id_=std::make_shared<int32_t>(r["id"].as<int32_t>());
+            id_=std::make_shared<std::string>(r["id"].as<std::string>());
         }
         if(!r["user_id"].isNull())
         {
-            userId_=std::make_shared<int32_t>(r["user_id"].as<int32_t>());
+            userId_=std::make_shared<std::string>(r["user_id"].as<std::string>());
         }
         if(!r["identity_pubkey"].isNull())
         {
@@ -89,12 +89,12 @@ Devices::Devices(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 0;
         if(!r[index].isNull())
         {
-            id_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            id_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 1;
         if(!r[index].isNull())
         {
-            userId_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            userId_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 2;
         if(!r[index].isNull())
@@ -145,7 +145,7 @@ Devices::Devices(const Json::Value &pJson, const std::vector<std::string> &pMasq
         dirtyFlag_[0] = true;
         if(!pJson[pMasqueradingVector[0]].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
+            id_=std::make_shared<std::string>(pJson[pMasqueradingVector[0]].asString());
         }
     }
     if(!pMasqueradingVector[1].empty() && pJson.isMember(pMasqueradingVector[1]))
@@ -153,7 +153,7 @@ Devices::Devices(const Json::Value &pJson, const std::vector<std::string> &pMasq
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            userId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
+            userId_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
         }
     }
     if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
@@ -207,7 +207,7 @@ Devices::Devices(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[0]=true;
         if(!pJson["id"].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
+            id_=std::make_shared<std::string>(pJson["id"].asString());
         }
     }
     if(pJson.isMember("user_id"))
@@ -215,7 +215,7 @@ Devices::Devices(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[1]=true;
         if(!pJson["user_id"].isNull())
         {
-            userId_=std::make_shared<int32_t>((int32_t)pJson["user_id"].asInt64());
+            userId_=std::make_shared<std::string>(pJson["user_id"].asString());
         }
     }
     if(pJson.isMember("identity_pubkey"))
@@ -274,7 +274,7 @@ void Devices::updateByMasqueradedJson(const Json::Value &pJson,
     {
         if(!pJson[pMasqueradingVector[0]].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
+            id_=std::make_shared<std::string>(pJson[pMasqueradingVector[0]].asString());
         }
     }
     if(!pMasqueradingVector[1].empty() && pJson.isMember(pMasqueradingVector[1]))
@@ -282,7 +282,7 @@ void Devices::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            userId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
+            userId_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
         }
     }
     if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
@@ -335,7 +335,7 @@ void Devices::updateByJson(const Json::Value &pJson) noexcept(false)
     {
         if(!pJson["id"].isNull())
         {
-            id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
+            id_=std::make_shared<std::string>(pJson["id"].asString());
         }
     }
     if(pJson.isMember("user_id"))
@@ -343,7 +343,7 @@ void Devices::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[1] = true;
         if(!pJson["user_id"].isNull())
         {
-            userId_=std::make_shared<int32_t>((int32_t)pJson["user_id"].asInt64());
+            userId_=std::make_shared<std::string>(pJson["user_id"].asString());
         }
     }
     if(pJson.isMember("identity_pubkey"))
@@ -390,20 +390,25 @@ void Devices::updateByJson(const Json::Value &pJson) noexcept(false)
     }
 }
 
-const int32_t &Devices::getValueOfId() const noexcept
+const std::string &Devices::getValueOfId() const noexcept
 {
-    static const int32_t defaultValue = int32_t();
+    static const std::string defaultValue = std::string();
     if(id_)
         return *id_;
     return defaultValue;
 }
-const std::shared_ptr<int32_t> &Devices::getId() const noexcept
+const std::shared_ptr<std::string> &Devices::getId() const noexcept
 {
     return id_;
 }
-void Devices::setId(const int32_t &pId) noexcept
+void Devices::setId(const std::string &pId) noexcept
 {
-    id_ = std::make_shared<int32_t>(pId);
+    id_ = std::make_shared<std::string>(pId);
+    dirtyFlag_[0] = true;
+}
+void Devices::setId(std::string &&pId) noexcept
+{
+    id_ = std::make_shared<std::string>(std::move(pId));
     dirtyFlag_[0] = true;
 }
 const typename Devices::PrimaryKeyType & Devices::getPrimaryKey() const
@@ -412,20 +417,25 @@ const typename Devices::PrimaryKeyType & Devices::getPrimaryKey() const
     return *id_;
 }
 
-const int32_t &Devices::getValueOfUserId() const noexcept
+const std::string &Devices::getValueOfUserId() const noexcept
 {
-    static const int32_t defaultValue = int32_t();
+    static const std::string defaultValue = std::string();
     if(userId_)
         return *userId_;
     return defaultValue;
 }
-const std::shared_ptr<int32_t> &Devices::getUserId() const noexcept
+const std::shared_ptr<std::string> &Devices::getUserId() const noexcept
 {
     return userId_;
 }
-void Devices::setUserId(const int32_t &pUserId) noexcept
+void Devices::setUserId(const std::string &pUserId) noexcept
 {
-    userId_ = std::make_shared<int32_t>(pUserId);
+    userId_ = std::make_shared<std::string>(pUserId);
+    dirtyFlag_[1] = true;
+}
+void Devices::setUserId(std::string &&pUserId) noexcept
+{
+    userId_ = std::make_shared<std::string>(std::move(pUserId));
     dirtyFlag_[1] = true;
 }
 void Devices::setUserIdToNull() noexcept
@@ -512,6 +522,7 @@ void Devices::updateId(const uint64_t id)
 const std::vector<std::string> &Devices::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
+        "id",
         "user_id",
         "identity_pubkey",
         "push_token",
@@ -522,6 +533,17 @@ const std::vector<std::string> &Devices::insertColumns() noexcept
 
 void Devices::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 {
+    if(dirtyFlag_[0])
+    {
+        if(getId())
+        {
+            binder << getValueOfId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
     if(dirtyFlag_[1])
     {
         if(getUserId())
@@ -571,6 +593,10 @@ void Devices::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 const std::vector<std::string> Devices::updateColumns() const
 {
     std::vector<std::string> ret;
+    if(dirtyFlag_[0])
+    {
+        ret.push_back(getColumnName(0));
+    }
     if(dirtyFlag_[1])
     {
         ret.push_back(getColumnName(1));
@@ -592,6 +618,17 @@ const std::vector<std::string> Devices::updateColumns() const
 
 void Devices::updateArgs(drogon::orm::internal::SqlBinder &binder) const
 {
+    if(dirtyFlag_[0])
+    {
+        if(getId())
+        {
+            binder << getValueOfId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
     if(dirtyFlag_[1])
     {
         if(getUserId())
@@ -983,12 +1020,7 @@ bool Devices::validJsonOfField(size_t index,
                 err="The " + fieldName + " column cannot be null";
                 return false;
             }
-            if(isForCreation)
-            {
-                err="The automatic primary key cannot be set";
-                return false;
-            }
-            if(!pJson.isInt())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -999,7 +1031,7 @@ bool Devices::validJsonOfField(size_t index,
             {
                 return true;
             }
-            if(!pJson.isInt())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;

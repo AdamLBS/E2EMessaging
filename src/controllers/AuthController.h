@@ -1,7 +1,9 @@
 #pragma once
 #include <drogon/HttpController.h>
+#include <models/Users.h>
 
 using namespace drogon;
+using namespace drogon_model::e2ee;
 
 class AuthController : public drogon::HttpController<AuthController>
 {
