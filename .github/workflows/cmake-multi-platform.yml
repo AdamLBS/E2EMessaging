@@ -61,7 +61,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
       with:
         vcpkgDirectory: ${{ steps.strings.outputs.vcpkg-root }}
-        vcpkgGitCommitId: 'master'
+        vcpkgGitCommitId: 'a62ce77d56ee07513b4b67de1ec2daeaebfae51a'
 
     - name: Configure CMake
       run: >
