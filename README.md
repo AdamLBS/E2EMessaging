@@ -1,6 +1,9 @@
-# E2EE Messaging Backend
-This is the backend for an end-to-end encrypted messaging application. It is built using the Drogon C++ framework and PostgreSQL for data storage.
+# 🛑 E2EE Messaging Backend — *Archived Project*
 
+> ⚠️ **This repository is now archived.**  
+> The project now continues under a new name: **[HushNet](https://github.com/HushNet/)** — a modern, federated, end-to-end encrypted messaging ecosystem built from this foundation.
+
+---
 ## Authentication Flow
 ```mermaid
 sequenceDiagram
